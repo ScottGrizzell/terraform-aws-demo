@@ -39,3 +39,7 @@ jobs:
       # 5. Compile the blueprint and output the execution map
       - name: Terraform Plan
         run: terraform plan
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
+        
