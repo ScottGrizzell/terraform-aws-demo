@@ -77,10 +77,10 @@ resource "aws_instance" "app_server" {
   ami           = data.aws_ami.ubuntu.id
   instance_type = var.instance_type
 
-  vpc_security_group_ids = [aws_security_group.web_traffic.id]
-  subnet_id              = module.vpc.public_subnets[0]
-
-  user_data = <<SCRIPT
+  vpc_security_group_ids      = [aws_security_group.web_traffic.id]
+  subnet_id                   = module.vpc.public_subnets[0]
+  user_data_replace_on_change = true
+  user_data                   = <<SCRIPT
 #!/bin/bash
 
 sleep 15
