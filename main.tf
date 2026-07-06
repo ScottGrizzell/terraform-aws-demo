@@ -85,6 +85,11 @@ resource "aws_instance" "app_server" {
 sudo apt-get update -y
 sudo apt-get install nginx -y
 sudo systemctl start nginx
+sudo systemctl enable nginx
+
+sudo cat << 'HTML' > /var/www/html/index.html
+${file("index.html")}
+HTML
 SCRIPT
 
   tags = {
