@@ -1,0 +1,8 @@
+# Local terraform directories
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+
+# Secret environment variables file (if you use one)
+.env
