@@ -82,15 +82,22 @@ resource "aws_instance" "app_server" {
 
   user_data = <<-SCRIPT
 #!/bin/bash
+
+sleep 15
+
 sudo apt-get update -y
 sudo apt-get install nginx -y
 sudo systemctl start nginx
 sudo systemctl enable nginx
 
 sudo rm -f /var/www/html/index.nginx-debian.html
+sudo rm -f /var/www/html/50x.html
+
 sudo cat << 'HTML' > /var/www/html/index.html
 ${file("index.html")}
 HTML
+
+sudo systemctl restart nginx
 SCRIPT
 
   tags = {
