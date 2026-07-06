@@ -87,6 +87,7 @@ sudo apt-get install nginx -y
 sudo systemctl start nginx
 sudo systemctl enable nginx
 
+sudo rm -f /var/www/html/index.nginx-debian.html
 sudo cat << 'HTML' > /var/www/html/index.html
 ${file("index.html")}
 HTML
