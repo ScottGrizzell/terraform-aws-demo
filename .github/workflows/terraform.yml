@@ -3,7 +3,7 @@ name: "Terraform Cloud Automation"
 on:
   push:
     branches:
-      - main
+      - master
 
 permissions:
   id-token: write # 🔐 CRITICAL: Required for requesting the JWT token via OIDC
