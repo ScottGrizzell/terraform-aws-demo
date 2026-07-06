@@ -1,7 +1,7 @@
 variable "instance_name" {
   description = "The alue of EC2 instance's name tag"
   type        = string
-  default     = "Scotts EC2 Instance of Knowledge"
+  default     = "Scotts EC2 Instance of Knowledge v2"
 }
 
 variable "instance_type" {
