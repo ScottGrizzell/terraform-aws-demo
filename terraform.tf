@@ -1,10 +1,10 @@
 terraform {
 
-    backend "s3"{
-        bucket = "scott-grizzell-tf-state-bucket-2026"
-        key = "dev/terraform.state"
-        region = "us-west-2"
-    }
+  backend "s3" {
+    bucket = "scott-grizzell-tf-state-bucket-2026"
+    key    = "dev/terraform.state"
+    region = "us-west-2"
+  }
   required_providers {
     aws = {
       source  = "hashicorp/aws"

@@ -1,0 +1,41 @@
+name: "Terraform Cloud Automation"
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write # 🔐 CRITICAL: Required for requesting the JWT token via OIDC
+  contents: read  # Required for checking out your configuration code
+
+jobs:
+  terraform:
+    name: "Terraform Plan & Apply"
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Pull down your infrastructure code onto the GitHub virtual runner
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # 2. Securely log into AWS using the OIDC Handshake (No passwords/keys!)
+      - name: Configure AWS Credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-west-2
+
+      # 3. Install the specific Terraform CLI tool binary
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.7
+
+      # 4. Initialize the backend engine and download provider plugins
+      - name: Terraform Init
+        run: terraform init
+
+      # 5. Compile the blueprint and output the execution map
+      - name: Terraform Plan
+        run: terraform plan
