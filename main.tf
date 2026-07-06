@@ -80,7 +80,7 @@ resource "aws_instance" "app_server" {
   vpc_security_group_ids = [aws_security_group.web_traffic.id]
   subnet_id              = module.vpc.public_subnets[0]
 
-  user_data = <<-SCRIPT
+  user_data = <<SCRIPT
 #!/bin/bash
 
 sleep 15
