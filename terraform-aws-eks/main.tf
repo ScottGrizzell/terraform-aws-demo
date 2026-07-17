@@ -12,4 +12,38 @@ resource "aws_vpc" "eks_vpc" {
   tags = {
     Name = "k8s-training-vpc"
   }
+
+
+}
+
+# now we are going to carve our 2^16 ip address we requested into seperate logical subnets
+resource "aws_subnet" "public_1" {
+  #instead of hard coding anything we can reference the ID of the VPC we just made to set our subnet up on
+  # this also tells terraform that this subnet is a dependency of the VPC and will be created after
+  # -- the VPC is created
+  vpc_id = aws_vpc.eks_vpc.id
+
+  # of the 2^16 address we have on our VPC we are going to carve out 2^(32-24) of them for this
+  # -- public subnet
+  cidr_block = "10.0.1.0/24"
+  #setting our AZ to what we defined in our variables
+  availability_zone = "${var.aws_region}a"
+  # when we start this subnet map the ips to be public
+  map_public_ip_on_launch = true
+
+  tags = {
+    Name = "k8s-public-${var.aws_region}a"
+  }
+}
+
+# make a second public subnet in a different AZ for high avaliablity
+resource "aws_subnet" "public_2" {
+  vpc_id                  = aws_vpc.eks_vpc.id
+  cidr_block              = "10.0.2.0/24"
+  availability_zone       = "${var.aws_region}b"
+  map_public_ip_on_launch = true
+
+  tags = {
+    Name = "k8s-public-${var.aws_region}b"
+  }
 }
