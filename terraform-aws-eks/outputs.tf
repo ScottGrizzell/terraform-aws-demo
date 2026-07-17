@@ -19,3 +19,8 @@ output "security_group_id" {
   value       = aws_security_group.eks_cluster_sg.id
   description = "The ID of our base cluster security group"
 }
+
+output "ecr_repository_url" {
+  value       = aws_ecr_repository.web_app_repo.repository_url
+  description = "The endpoint for logging into docker and pushing images into our rep"
+}
