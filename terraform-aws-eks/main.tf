@@ -47,3 +47,86 @@ resource "aws_subnet" "public_2" {
     Name = "k8s-public-${var.aws_region}b"
   }
 }
+
+# Adding an Internet gateway this is like building a door to the internet for our VPC so people
+# -- can actually access our public subnets
+resource "aws_internet_gateway" "eks_igw" {
+  vpc_id = aws_vpc.eks_vpc.id
+  tags = {
+    Name = "k8s-training-igw"
+  }
+}
+
+# This table acts like a highway exit sign for traffic leaving our network. kinda a mid analogy
+# It doesn't manage people walking in; it tells packets inside our subnet how to get OUT.
+resource "aws_route_table" "public_rt" {
+  vpc_id = aws_vpc.eks_vpc.id
+
+  # Destination rules for any traffic leaving resources associated with this table
+  route {
+    # 0.0.0.0/0 means "The entire Internet" (any address not inside our VPC).
+    # This rule says: "If a packet is headed outside our private network, send it 
+    # out through our Internet Gateway so it can reach the global web."
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.eks_igw.id
+  }
+  tags = {
+    Name = "k8s-public-route-table"
+  }
+}
+
+# Associate our public subnet with the route table we setup
+resource "aws_route_table_association" "public_1_assoc" {
+  # Subnet we're associating our table with
+  subnet_id = aws_subnet.public_1.id
+  # route table we're associating to our subnet
+  route_table_id = aws_route_table.public_rt.id
+}
+
+resource "aws_route_table_association" "public_2_assoc" {
+  # Subnet we're associating our table with
+  subnet_id = aws_subnet.public_2.id
+  # route table we're associating to our subnet
+  route_table_id = aws_route_table.public_rt.id
+}
+
+# Creating security group rules to manage what taffic is allowed to go in and out
+# This is a stateful chuck unlike a NACL (network access control list)
+resource "aws_security_group" "eks_cluster_sg" {
+  name        = "k8s-training-cluster-sg"
+  description = "Base firewall rules for training cluster"
+  vpc_id      = aws_vpc.eks_vpc.id # links these rules to our VPC
+
+  # Inbound rules: These say what is allowed to enter our VPC/subnets
+  # This rule is saying allow any web traffic on port 80
+  ingress {
+    # These attributes confuse me please explain them
+    description = " Allow http web traffic"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] # allow traffic from anywhere
+  }
+
+  #This rule is saying allow shell SSHing on port 22
+  ingress {
+    description = "Allow SSH access"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] # allow traffic from anywhere
+  }
+
+  # Outbound rules: These say what is allowed to leave our VPC/subnets
+  egress {
+    # setting from and to port 0 when protocol is -1 means allow all traffic to leave the VPC
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"          # -1 means all protocols
+    cidr_blocks = ["0.0.0.0/0"] # allow traffic to anywhere
+  }
+
+  tags = {
+    Name = "k8s-cluster-security-group"
+  }
+}
