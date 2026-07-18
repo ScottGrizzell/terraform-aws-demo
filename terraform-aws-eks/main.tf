@@ -100,7 +100,6 @@ resource "aws_security_group" "eks_cluster_sg" {
   # Inbound rules: These say what is allowed to enter our VPC/subnets
   # This rule is saying allow any web traffic on port 80
   ingress {
-    # These attributes confuse me please explain them
     description = " Allow http web traffic"
     from_port   = 80
     to_port     = 80
@@ -236,4 +235,93 @@ resource "aws_eks_cluster" "training_cluster" {
   ]
 }
 
+# Creating the pool of worker nodes to deploy pods too
+resource "aws_eks_node_group" "training_nodes" {
+  cluster_name    = aws_eks_cluster.training_cluster.name
+  node_group_name = "k8s-training-node-group"
+  node_role_arn   = aws_iam_role.eks_node_role.arn
+  subnet_ids      = [aws_subnet.public_1.id, aws_subnet.public_2.id]
 
+  instance_types = ["t3.small"]
+
+  scaling_config {
+    desired_size = 2 # are goal is to have 2 nodes running always
+    max_size     = 3
+    min_size     = 1
+  }
+
+  # make sure the node policy is setup before making the nodes
+  depends_on = [
+    aws_iam_role_policy_attachment.amazon_eks_worker_node_policy,
+    aws_iam_role_policy_attachment.amazon_eks_cni_policy,
+    aws_iam_role_policy_attachment.amazon_ec2_container_registry_read_only,
+  ]
+}
+
+
+# GITHUB OIDC RESOURCES ------------------------------------------------------------
+resource "aws_iam_openid_connect_provider" "github" {
+  url             = "https://token.actions.githubusercontent.com"
+  client_id_list  = ["sts.amazonaws.com"]
+  thumbprint_list = ["6938fd4d98bab03faadb97b34396831e3780aea1"]
+}
+
+resource "aws_iam_role" "github_actions" {
+  name = "github-actions-deploy-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        Federated = aws_iam_openid_connect_provider.github.arn
+      }
+      Action = "sts:AssumeRoleWithWebIdentity"
+      Condition = {
+        StringEquals = {
+          "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
+        }
+        StringLike = {
+          # Restrict to your specific repo - replace with your actual github username/repo
+          "token.actions.githubusercontent.com:sub" = "repo:ScottGrizzell/terraform-aws-demo:*"
+        }
+      }
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "github_actions_admin" {
+  role       = aws_iam_role.github_actions.name
+  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
+}
+
+
+# HELM SETUP ---------------------------------------------------------
+# Setting up our helm resource with everything it needs to be able to talk to and be aware of our EKS cluster
+# Basically like giving it hte Kube Config file locally
+provider "helm" {
+  kubernetes {
+    host                   = aws_eks_cluster.training_cluster.endpoint
+    cluster_ca_certificate = base64decode(aws_eks_cluster.training_cluster.certificate_authority[0].data)
+    token                  = data.aws_eks_cluster_auth.training_cluster_auth.token
+  }
+}
+
+data "aws_eks_cluster_auth" "training_cluster_auth" {
+  name = aws_eks_cluster.training_cluster.name
+}
+
+resource "helm_release" "monitoring_stack" {
+  name             = "monitoring-stack"
+  repository       = "https://prometheus-community.github.io/helm-charts"
+  chart            = "kube-prometheus-stack"
+  namespace        = "monitoring"
+  create_namespace = true
+
+  set {
+    name  = "grafana.adminPassword"
+    value = "THIS_SHOULD_NEVER_BE_IN_PRODUCTION" # TODO: Using this for testing with abstract to github secret or something when I do pipeline 
+  }
+
+  depends_on = [aws_eks_cluster.training_cluster, aws_eks_node_group.training_nodes]
+}

@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: static-web-deployment
+  labels:
+    app: static-web # This is important because its what we'll refer to this deployment as
+
+spec:
+  replicas: 2              # We want 2 copies of our pod running for high availability!
+  selector:
+    matchLabels:
+      app: static-web      # This is how the Deployment knows which Pods it is supervising
+  template:
+    metadata:
+      labels:
+        app: static-web    # Label stamped onto our Pods
+    spec:
+      containers:
+      - name: web-container
+        image: static-web-app:v1
+        imagePullPolicy: Never  # Tells K8s to ONLY look in Minikubes local cache
+        ports:
+        - containerPort: 80

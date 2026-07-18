@@ -3,7 +3,9 @@ terraform {
   backend "s3" {
     bucket = "scott-grizzell-tf-state-bucket-2026"
     key    = "dev/terraform.state"
-    region = "us-west-2"
+    region = var.aws_region
+    dynamodb_table = "terraform-locks"
+    encrypt = true
   }
   required_providers {
     aws = {

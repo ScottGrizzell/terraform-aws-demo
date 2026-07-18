@@ -4,42 +4,54 @@ on:
   push:
     branches:
       - master
+    paths:
+      - 'terraform-aws-eks/**'
 
 permissions:
-  id-token: write # 🔐 CRITICAL: Required for requesting the JWT token via OIDC
-  contents: read  # Required for checking out your configuration code
+  id-token: write
+  contents: read
 
 jobs:
-  terraform:
-    name: "Terraform Plan & Apply"
+  plan:
+    name: "Terraform Plan"
     runs-on: ubuntu-latest
-
+    defaults:
+      run:
+        working-directory: terraform-aws-eks
     steps:
-      # 1. Pull down your infrastructure code onto the GitHub virtual runner
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      # 2. Securely log into AWS using the OIDC Handshake (No passwords/keys!)
-      - name: Configure AWS Credentials via OIDC
-        uses: aws-actions/configure-aws-credentials@v4
+      - uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: us-west-2
 
-      # 3. Install the specific Terraform CLI tool binary
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.5.7
 
-      # 4. Initialize the backend engine and download provider plugins
-      - name: Terraform Init
-        run: terraform init
+      - run: terraform init
+      - run: terraform plan
 
-      # 5. Compile the blueprint and output the execution map
-      - name: Terraform Plan
-        run: terraform plan
+  apply:
+    name: "Terraform Apply"
+    needs: plan
+    runs-on: ubuntu-latest
+    environment: terraform-apply
+    defaults:
+      run:
+        working-directory: terraform-aws-eks
+    steps:
+      - uses: actions/checkout@v4
 
-      - name: Terraform Apply
-        run: terraform apply -auto-approve
-        
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-west-2
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.7
+
+      - run: terraform init
+      - run: terraform apply -auto-approve

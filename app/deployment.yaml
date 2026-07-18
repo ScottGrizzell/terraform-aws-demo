@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: static-web-app-deployment
+  labels:
+    app: static-web-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: static-web-app
+  template:
+    metadata:
+      labels:
+        app: static-web-app
+    spec:
+      containers:
+      - name: web-app
+        #  Saying pull from our ECR registry
+        image: 598892456428.dkr.ecr.us-west-2.amazonaws.com/static-web-app:latest
+        ports:
+        - containerPort: 80
+        # Defines resources constraints for our nodes
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+          limits:
+            memory: "128Mi"
+            cpu: "250m"

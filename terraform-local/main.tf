@@ -41,11 +41,24 @@ resource "kubernetes_deployment_v1" "web_deployment" {
       spec {
         container {
           name  = "web-container"
-          image = "static-web-app:v1"
+          image = "static-web-app:v2"
 
           image_pull_policy = "Never" # this is important so we don't try to query the docker registry for image thats not there. my guess is in the future this will pull from ECR
           port {
             container_port = 80
+          }
+
+          resources {
+             # A request is saying this is the bare minimum avaliable needed resources to run something on this pod 
+            requests = {
+              cpu    = "100m"
+              memory = "128Mi"
+            }
+            # A limit is saying the max amount of resources this pod can use before it gets killed with an out of memory error
+            limits = {
+              cpu = "500m"
+              memory = "256Mi"
+            }
           }
         }
       }
@@ -59,7 +72,7 @@ resource "kubernetes_deployment_v1" "web_deployment" {
 }
 
 
-# This is what makes the service so we can have an exposed port for our container
+# This is what makes the service so we can have an exposed port for our container. Also is our load balancer
 resource "kubernetes_service_v1" "web_service_local" {
   metadata {
     name = "web-service"
