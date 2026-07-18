@@ -1,0 +1,14 @@
+# this is automating when we would manually run kubectl service
+apiVersion: v1
+kind: Service
+metadata:
+  name: static-web-app-service
+spec:
+  type: LoadBalancer
+  selector:
+    # This must match the exact label we gave the pods in deployment.yaml
+    app: static-web-app 
+  ports:
+  - protocol: TCP
+    port: 80       # The port the Load Balancer listens on out on the internet
+    targetPort: 80 # The port your actual container is listening on inside the pod
