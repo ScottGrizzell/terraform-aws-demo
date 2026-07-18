@@ -31,7 +31,12 @@ jobs:
           terraform_version: 1.5.7
 
       - run: terraform init
-      - run: terraform plan
+
+      - name: Terraform Plan - Cluster First
+        run: terraform plan -target=aws_eks_cluster.training_cluster -target=aws_eks_node_group.training_nodes
+
+      - name: Terraform Plan - Everything Else
+        run: terraform plan
 
   apply:
     name: "Terraform Apply"
@@ -54,4 +59,9 @@ jobs:
           terraform_version: 1.5.7
 
       - run: terraform init
-      - run: terraform apply -auto-approve
+
+      - name: Terraform Apply - Cluster First
+        run: terraform apply -auto-approve -target=aws_eks_cluster.training_cluster -target=aws_eks_node_group.training_nodes
+
+      - name: Terraform Apply - Everything Else
+        run: terraform apply -auto-approve
