@@ -1,0 +1,47 @@
+
+name: "Cost Saver: Teardown Expensive Infra"
+
+on:
+  workflow_dispatch: 
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  destroy-expensive-infra:
+    name: "Targeted Teardown"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-west-2
+
+      - name: Update kubeconfig
+        # We need to talk to the cluster before we destroy it to clean up Load Balancers
+        run: aws eks update-kubeconfig --name k8s-training-cluster --region us-west-2
+
+      - name: Delete Kubernetes-Managed Load Balancers
+        # If we destroy the cluster before deleting the Service, AWS leaves the ELB running
+        # and charges you $16/month for a ghost Load Balancer. This prevents that.
+        run: kubectl delete -f app/deployment.yaml --ignore-not-found=true
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Targeted Destroy
+        # We explicitly target Helm, the EC2 nodes, and the EKS Control Plane.
+        # Everything else (VPC, Security Groups, IAM, OIDC, ECR) stays alive for free.
+        run: |
+          terraform destroy -auto-approve \
+            -target=helm_release.monitoring_stack \
+            -target=aws_eks_node_group.training_nodes \
+            -target=aws_eks_cluster.training_cluster

@@ -9,7 +9,7 @@ metadata:
   name: static-web-app-deployment
   namespace: web-app
   labels:
-    app: static-web-app
+    app: static-web-app # What we look for to say if our containers exist or not
 spec:
   replicas: 2
   selector:

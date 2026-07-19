@@ -358,5 +358,8 @@ resource "helm_release" "monitoring_stack" {
     value = var.grafana_admin_password
   }
 
-  depends_on = [aws_eks_cluster.training_cluster, aws_eks_node_group.training_nodes]
+  depends_on = [
+    aws_eks_cluster.training_cluster, 
+    aws_eks_node_group.training_nodes,
+    aws_eks_access_policy_association.local_admin_policy]
 }
