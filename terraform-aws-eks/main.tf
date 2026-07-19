@@ -220,6 +220,7 @@ resource "aws_eks_cluster" "training_cluster" {
 
   access_config {
     authentication_mode = "API_AND_CONFIG_MAP"
+    bootstrap_cluster_creator_admin_permissions = true
   }
   vpc_config {
     # Connecting to our firewall sg we setup earlier
@@ -335,7 +336,7 @@ provider "helm" {
 
 
 
-/*resource "helm_release" "monitoring_stack" {
+resource "helm_release" "monitoring_stack" {
   name             = "monitoring-stack"
   repository       = "https://prometheus-community.github.io/helm-charts"
   chart            = "kube-prometheus-stack"
@@ -348,4 +349,4 @@ provider "helm" {
   }
 
   depends_on = [aws_eks_cluster.training_cluster, aws_eks_node_group.training_nodes]
-}*/
+}
