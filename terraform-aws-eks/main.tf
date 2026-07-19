@@ -335,7 +335,7 @@ provider "helm" {
 
 
 
-resource "helm_release" "monitoring_stack" {
+/*resource "helm_release" "monitoring_stack" {
   name             = "monitoring-stack"
   repository       = "https://prometheus-community.github.io/helm-charts"
   chart            = "kube-prometheus-stack"
@@ -348,4 +348,4 @@ resource "helm_release" "monitoring_stack" {
   }
 
   depends_on = [aws_eks_cluster.training_cluster, aws_eks_node_group.training_nodes]
-}
+}*/
