@@ -218,6 +218,9 @@ resource "aws_eks_cluster" "training_cluster" {
   # This is the cluster role we set up earlier!!!
   role_arn = aws_iam_role.eks_cluster_role.arn
 
+  access_config {
+    authentication_mode = "API_AND_CONFIG_MAP"
+  }
   vpc_config {
     # Connecting to our firewall sg we setup earlier
     security_group_ids = [aws_security_group.eks_cluster_sg.id]
