@@ -1,27 +1,95 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>My First DevOps Cloud Server</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scott Grizzell - AWS EKS Project</title>
+<style>
+  body {
+    background: #ffffff;
+    color: #000000;
+    font-family: Times, "Times New Roman", serif;
+    font-size: 16px;
+    max-width: 700px;
+    margin: 20px auto;
+    padding: 0 15px;
+  }
+  h1 {
+    font-size: 26px;
+    margin-bottom: 4px;
+  }
+  h2 {
+    font-size: 20px;
+    margin-top: 30px;
+    border-bottom: 1px solid #000000;
+    padding-bottom: 2px;
+  }
+  a {
+    color: #0000EE;
+  }
+  a:visited {
+    color: #551A8B;
+  }
+  .mono {
+    font-family: "Courier New", monospace;
+  }
+  ul {
+    margin-top: 4px;
+  }
+  .small {
+    font-size: 13px;
+    color: #333333;
+  }
+  hr {
+    margin: 25px 0;
+  }
+</style>
 </head>
+<body>
 
+<h1>My AWS EKS Cloud Server</h1>
+<p class="small">Last updated: <span id="deploy-time">{{DEPLOY_TIME}}</span> &nbsp;|&nbsp; Commit: <span class="mono" id="git-sha">{{GIT_SHA}}</span></p>
 
-    <center>
-        <h1>Welcome to My AWS EKS Cloud Server! v2</h1>
-        <p><tt>This server was provisioned using Terraform </tt></p>
-        <p><b>ACTIVE INFRASTRUCTURE:</b> This application and its logging are actively running inside a Docker container, orchestrated on a Kubernetes (K8s) pod, hosted on AWS EKS.</p>
-    </center>
-    
-    <hr>
+<hr>
 
-    <center>
-        <h3>This update we performed by my pipeline building the docker image for me</h3>
-        
-    </center>
+<h2>What this is</h2>
+<p>
+This page is served by nginx, running in a Docker container, on a pod, on a
+Kubernetes cluster (AWS EKS). The infrastructure was provisioned with
+Terraform. Every time I push a change to this page, a GitHub Actions
+pipeline builds a new image, pushes it to ECR, and rolls it out to the
+cluster automatically.
+</p>
 
-    <hr>
+<h2>Live pipeline status</h2>
+<p>
+  <a href="https://github.com/ScottGrizzell/terraform-aws-demo/actions/workflows/terraform.yml" target="_blank">
+    <img src="https://github.com/ScottGrizzell/terraform-aws-demo/actions/workflows/terraform.yml/badge.svg" alt="Terraform Cloud Automation status">
+  </a>
+</p>
+<p>
+  <a href="https://github.com/ScottGrizzell/terraform-aws-demo/actions/workflows/app-deploy.yml" target="_blank">
+    <img src="https://github.com/ScottGrizzell/terraform-aws-demo/actions/workflows/app-deploy.yml/badge.svg" alt="App Build & Deploy status">
+  </a>
+</p>
 
-    <p align="center"><tt>Server Status: ONLINE | Orchestration: K8S | Hosting: AWS</tt></p>
+<h2>What's running</h2>
+<ul>
+  <li><b>Terraform</b> - provisions the VPC, EKS cluster, and node group. State stored in S3, locked with DynamoDB.</li>
+  <li><b>GitHub Actions</b> - authenticates to AWS via OIDC (no stored access keys). Runs plan/apply for infra and build/deploy for this app.</li>
+  <li><b>Prometheus + Grafana</b> - installed via Helm, watches pod and node health across the cluster.</li>
+  <li><b>This page</b> - a static site in an nginx container, rebuilt and redeployed on every commit.</li>
+</ul>
+
+<h2>Links</h2>
+<ul>
+  <li><a href="https://github.com/ScottGrizzell/terraform-aws-demo" target="_blank">Source code on GitHub</a></li>
+  <li><a href="https://github.com/ScottGrizzell/terraform-aws-demo/actions" target="_blank">All pipeline runs</a></li>
+</ul>
+
+<hr>
+<p class="small">Built by Scott Grizzell.</p>
+
 
 </body>
 </html>
