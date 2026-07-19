@@ -49,6 +49,8 @@ jobs:
     defaults:
       run:
         working-directory: terraform-aws-eks
+    env:
+      TF_VAR_grafana_admin_password: ${{ secrets.GRAFANA_ADMIN_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
 
