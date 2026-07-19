@@ -1,0 +1,62 @@
+name: "App Build & Deploy"
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'app/**'
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-and-deploy:
+    name: "Build, Push, Deploy"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-west-2
+
+      - name: Login to ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push image
+        env:
+          ECR_REGISTRY: ${{ steps.ecr-login.outputs.registry }}
+          ECR_REPOSITORY: static-web-app
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
+            ./app
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --name k8s-training-cluster --region us-west-2
+
+      - name: Apply manifest
+        run: kubectl apply -f app/deployment.yaml
+
+      - name: Deploy new image
+        env:
+          ECR_REGISTRY: ${{ steps.ecr-login.outputs.registry }}
+          ECR_REPOSITORY: static-web-app
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          kubectl set image deployment/static-web-app-deployment \
+            web-app=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
+            -n web-app
+
+      - name: Wait for rollout
+        run: kubectl rollout status deployment/static-web-app-deployment -n web-app --timeout=120s

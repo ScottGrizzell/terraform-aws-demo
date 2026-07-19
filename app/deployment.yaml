@@ -1,7 +1,13 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: web-app
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: static-web-app-deployment
+  namespace: web-app
   labels:
     app: static-web-app
 spec:
@@ -16,7 +22,7 @@ spec:
     spec:
       containers:
       - name: web-app
-        #  Saying pull from our ECR registry
+        #  Saying pull from our ECR registry - pipeline overwrites this tag via `kubectl set image` on every deploy
         image: 598892456428.dkr.ecr.us-west-2.amazonaws.com/static-web-app:latest
         ports:
         - containerPort: 80
@@ -28,3 +34,16 @@ spec:
           limits:
             memory: "128Mi"
             cpu: "250m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: static-web-app-service
+  namespace: web-app
+spec:
+  type: LoadBalancer
+  selector:
+    app: static-web-app
+  ports:
+    - port: 80
+      targetPort: 80
