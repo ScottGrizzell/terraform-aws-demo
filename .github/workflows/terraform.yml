@@ -18,6 +18,8 @@ jobs:
     defaults:
       run:
         working-directory: terraform-aws-eks
+    env:
+      TF_VAR_grafana_admin_password: ${{ secrets.GRAFANA_ADMIN_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
 
@@ -34,10 +36,10 @@ jobs:
 
       - name: Terraform Plan - Cluster First
         run: terraform plan -target=aws_eks_cluster.training_cluster -target=aws_eks_node_group.training_nodes
-
+        
       - name: Terraform Plan - Everything Else
         run: terraform plan
-
+        
   apply:
     name: "Terraform Apply"
     needs: plan
@@ -62,6 +64,7 @@ jobs:
 
       - name: Terraform Apply - Cluster First
         run: terraform apply -auto-approve -target=aws_eks_cluster.training_cluster -target=aws_eks_node_group.training_nodes
-
+        
       - name: Terraform Apply - Everything Else
         run: terraform apply -auto-approve
+        
