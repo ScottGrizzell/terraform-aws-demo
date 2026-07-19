@@ -345,7 +345,7 @@ resource "helm_release" "monitoring_stack" {
 
   set {
     name  = "grafana.adminPassword"
-    value = "THIS_SHOULD_NEVER_BE_IN_PRODUCTION" # TODO: Using this for testing with abstract to github secret or something when I do pipeline 
+    value = var.grafana_admin_password
   }
 
   depends_on = [aws_eks_cluster.training_cluster, aws_eks_node_group.training_nodes]
