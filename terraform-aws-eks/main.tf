@@ -260,14 +260,14 @@ resource "aws_eks_node_group" "training_nodes" {
 
 resource "aws_eks_access_entry" "local_admin_access" {
     cluster_name = aws_eks_cluster.training_cluster.name
-   principal_arn = "arn:aws:iam::598892456428:user/AIDAYW4GFVHWH3XFGAUOW"
+   principal_arn = "arn:aws:iam::598892456428:user/scott-cli-admin"
     type = "STANDARD"
 }
 
 resource "aws_eks_access_policy_association" "local_admin_policy" {
   cluster_name  = aws_eks_cluster.training_cluster.name
   principal_arn = aws_eks_access_entry.local_admin_access.principal_arn
-  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/scott-cli-admin"
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
 
   access_scope {
     type = "cluster"
