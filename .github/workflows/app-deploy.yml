@@ -29,6 +29,16 @@ jobs:
         id: ecr-login
         uses: aws-actions/amazon-ecr-login@v2
 
+      - name: Stamp Deploy Time into Web Page
+        run: |
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          DEPLOY_TIME=$(date -u +"%Y-%m-%d %H:%M UTC")
+          sed -i "s/{{GIT_SHA}}/${SHORT_SHA}/" app/index.html
+          sed -i "s/{{DEPLOY_TIME}}/${DEPLOY_TIME}/" app/index.html
+          echo "--- verifying substitution ---"
+          grep -A1 "Last updated" app/index.html
+            
+        
       - name: Build and push image
         env:
           ECR_REGISTRY: ${{ steps.ecr-login.outputs.registry }}
