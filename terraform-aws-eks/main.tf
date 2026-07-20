@@ -31,6 +31,7 @@ provider "helm" {
 }
 
 module "monitoring" {
+  
   source = "../terraform/modules/monitoring"
   grafana_admin_password = var.grafana_admin_password
   depends_on = [module.eks]
