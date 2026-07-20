@@ -75,20 +75,6 @@ resource "aws_route_table" "public_rt" {
   }
 }
 
-# Associate our public subnet with the route table we setup
-resource "aws_route_table_association" "public_1_assoc" {
-  # Subnet we're associating our table with
-  subnet_id = aws_subnet.public_1.id
-  # route table we're associating to our subnet
-  route_table_id = aws_route_table.public_rt.id
-}
-
-resource "aws_route_table_association" "public_2_assoc" {
-  # Subnet we're associating our table with
-  subnet_id = aws_subnet.public_2.id
-  # route table we're associating to our subnet
-  route_table_id = aws_route_table.public_rt.id
-}
 
 # Creating security group rules to manage what taffic is allowed to go in and out
 # This is a stateful chuck unlike a NACL (network access control list)
@@ -106,6 +92,14 @@ resource "aws_security_group" "eks_cluster_sg" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"] # allow traffic from anywhere
   }
+   ingress {
+    description = " Allow https web traffic"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] # allow traffic from anywhere
+  }
+
 
   #This rule is saying allow shell SSHing on port 22
   ingress {
