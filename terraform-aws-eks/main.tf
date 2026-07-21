@@ -266,6 +266,8 @@ resource "aws_eks_node_group" "training_nodes" {
 
   # make sure the node policy is setup before making the nodes
   depends_on = [
+    aws_route_table_association.public_1_assoc,
+    aws_route_table_association.public_2_assoc,
     aws_iam_role_policy_attachment.amazon_eks_worker_node_policy,
     aws_iam_role_policy_attachment.amazon_eks_cni_policy,
     aws_iam_role_policy_attachment.amazon_ec2_container_registry_read_only,
