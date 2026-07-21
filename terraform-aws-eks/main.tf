@@ -7,7 +7,7 @@ module "eks" {
   source = "../terraform/modules/eks"
   
   vpc_sgs = [module.vpc.security_group_id]
-  subnet_ids = [ module.vpc.public_subnet_1_id, module.vpc.public_subnet_2_id]
+  subnet_ids =  module.vpc.public_subnet_ids
 }
 
 module "ecr" {

@@ -5,15 +5,6 @@ output "vpc_id" {
   description = "The ID of the VPC"
 }
 
-output "public_subnet_1_id" {
-  value       = module.vpc.public_subnet_1_id
-  description = "The ID of public subnet 1 in our AZ-A"
-}
-
-output "public_subnet_2_id" {
-  value       = module.vpc.public_subnet_2_id
-  description = "The ID of public subnet 2 in our AZ-B"
-}
 
 output "security_group_id" {
   value       = module.vpc.security_group_id
